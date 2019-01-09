@@ -1,5 +1,10 @@
+dist: xenial
+sudo: required
 language: csharp
-solution: OpenWeatherClient.sln
-
 mono: none
 dotnet: 2.2
+
+solution: OpenWeatherClient.sln
+globals:
+  - DOTNET_SKIP_FIRST_TIME_EPErIENCE=true
+  - DOTNET_CLI_TELEMETRY_OUTPUT=1
