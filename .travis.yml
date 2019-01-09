@@ -1,0 +1,5 @@
+language: csharp
+solution: OpenWeatherClient.sln
+
+mono: none
+dotnet: 2.2.102

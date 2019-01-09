@@ -1,5 +1,6 @@
 using System;
 using Xunit;
+using FluentAssertions;
 
 namespace OpenWeatherClient.Tests
 {
@@ -8,7 +9,8 @@ namespace OpenWeatherClient.Tests
         [Fact]
         public void Test1()
         {
-
+            var actual = true;
+            actual.Should().BeTrue();
         }
     }
 }
