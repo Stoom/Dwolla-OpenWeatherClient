@@ -34,6 +34,8 @@ namespace OpenWeatherClient
             var location = new StringBuilder(city);
             if (!String.IsNullOrWhiteSpace(state))
                 location.Append($",{state}");
+            if (!String.IsNullOrWhiteSpace(country))
+                location.Append($",{country}");
             return location.ToString();
         }
     }
