@@ -4,6 +4,6 @@ namespace OpenWeatherClient.Abstractions
 {
     public interface IGeo
     {
-         Task<Coord> GetLatLongForCityAsync(string city, string state = null, string country = null);
+         Task<Coord> GetLatLongForCityAsync(string location);
     }
 }

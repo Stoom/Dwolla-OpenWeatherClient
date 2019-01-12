@@ -26,11 +26,11 @@ namespace OpenWeatherClient
             this.apiKey = apiKey;
         }
 
-        public async Task<Coord> GetLatLongForCityAsync(string city, string state = null, string country = null)
+        public async Task<Coord> GetLatLongForCityAsync(string location)
         {
             var uri = new UriBuilder("https://api.opencagedata.com/geocode/v1/json");
             var query = HttpUtility.ParseQueryString(string.Empty);
-            query["q"] = GenerateLocation(city, state, country);
+            query["q"] = location;
             query["key"] = apiKey;
             uri.Query = query.ToString();
 
@@ -51,16 +51,6 @@ namespace OpenWeatherClient
                 result.Geometry.Lng,
                 result.Formatted
             );
-        }
-
-        private string GenerateLocation(string city, string state = null, string country = null)
-        {
-            var location = new StringBuilder(city);
-            if (!String.IsNullOrWhiteSpace(state))
-                location.Append($",{state}");
-            if (!String.IsNullOrWhiteSpace(country))
-                location.Append($",{country}");
-            return location.ToString();
         }
     }
 }

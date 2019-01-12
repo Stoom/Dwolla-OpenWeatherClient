@@ -73,7 +73,7 @@ namespace OpenWeatherClient.Tests.Unit
         }
 
         [Fact]
-        public void GetLatLongFromCityAsync__AddsTheCityToTheQueryString()
+        public void GetLatLongFromCityAsync__AddsTheLocationToTheQueryString()
         {
             var city = "Des Moines";
             var handlerMock = SetupBackend(x => x.RequestUri.Query.Contains($"q={WebUtility.UrlEncode(city)}"));
@@ -82,55 +82,6 @@ namespace OpenWeatherClient.Tests.Unit
             var geo = new OpenCageGeo(client, apiKey);
 
             Func<Task> act = async () => await geo.GetLatLongForCityAsync(city);
-
-            act.Should().NotThrow();
-        }
-
-        [Fact]
-        public void GetLatLongFromCityAsync__AddsTheStateToTheQueryString()
-        {
-            var city = "Des Moines";
-            var state = "Ia";
-            var encodedLocation = WebUtility.UrlEncode($"{city},{state}");
-            var handlerMock = SetupBackend(x => x.RequestUri.Query.Contains($"q={encodedLocation}", StringComparison.InvariantCultureIgnoreCase));
-
-            var client = new HttpClient(handlerMock.Object);
-            var geo = new OpenCageGeo(client, apiKey);
-
-            Func<Task> act = async() => await geo.GetLatLongForCityAsync(city, state);
-
-            act.Should().NotThrow();
-        }
-
-        [Fact]
-        public void GetLatLongFromCityAsync__AddsTheCountryToTheQueryString()
-        {
-            var city = "Des Moines";
-            var state = "Ia";
-            var country = "US";
-            var encodedLocation = WebUtility.UrlEncode($"{city},{state},{country}");
-            var handlerMock = SetupBackend(x => x.RequestUri.Query.Contains($"q={encodedLocation}", StringComparison.InvariantCultureIgnoreCase));
-
-            var client = new HttpClient(handlerMock.Object);
-            var geo = new OpenCageGeo(client, apiKey);
-
-            Func<Task> act = async() => await geo.GetLatLongForCityAsync(city, state, country);
-
-            act.Should().NotThrow();
-        }
-
-        [Fact]
-        public void GetLatLongFromCityAsync__AddsTheCountryWithoutStateToTheQueryString()
-        {
-            var city = "Des Moines";
-            var country = "US";
-            var encodedLocation = WebUtility.UrlEncode($"{city},{country}");
-            var handlerMock = SetupBackend(x => x.RequestUri.Query.Contains($"q={encodedLocation}", StringComparison.InvariantCultureIgnoreCase));
-
-            var client = new HttpClient(handlerMock.Object);
-            var geo = new OpenCageGeo(client, apiKey);
-
-            Func<Task> act = async() => await geo.GetLatLongForCityAsync(city, null, country);
 
             act.Should().NotThrow();
         }
