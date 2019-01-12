@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,6 +30,10 @@ namespace OpenWeatherClient
             var res = await client.SendAsync(req);
 
             var body = JsonConvert.DeserializeObject<OpenCageRes>(await res.Content.ReadAsStringAsync());
+
+            if (body.Status.Code != (int)HttpStatusCode.OK)
+                throw new ApiException(body.Status.Message);
+
             var result = body.Results.First();
 
             return new Coord(

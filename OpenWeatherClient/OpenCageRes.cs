@@ -15,7 +15,7 @@ namespace OpenWeatherClient
         public class StatusRes
         {
             public int Code { get; set; }
-            public string message { get; set; }
+            public string Message { get; set; }
         }
 
         public StatusRes Status { get; set; }

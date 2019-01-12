@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using Moq.Protected;
+using OpenWeatherClient.Abstractions;
 using Xunit;
 
 namespace OpenWeatherClient.Tests.Unit
@@ -117,7 +118,23 @@ namespace OpenWeatherClient.Tests.Unit
             coords.ToString().Should().BeEquivalentTo(location);
         }
 
-        private Mock<HttpMessageHandler> SetupBackend(Expression<Func<HttpRequestMessage, bool>> match = null, Mock<HttpMessageHandler> mock = null)
+        [Fact]
+        public void GetLatLongFromCityAsync__ThrowsExceptionWhenBadRespons()
+        {
+            var handlerMock = SetupBackend(response: BadKeyResponse);
+
+            var client = new HttpClient(handlerMock.Object);
+            var geo = new OpenCageGeo(client);
+
+            Func<Task> act = async() => await geo.GetLatLongForCityAsync("Des Moines");
+
+            act.Should().Throw<ApiException>().WithMessage($"*{BadKeyMessage}");
+        }
+
+        private Mock<HttpMessageHandler> SetupBackend(
+            Expression<Func<HttpRequestMessage, bool>> match = null,
+            Mock<HttpMessageHandler> mock = null,
+            string response = null)
         {
             mock = mock ?? new Mock<HttpMessageHandler>();
             var reqMatch = match != null
@@ -131,7 +148,7 @@ namespace OpenWeatherClient.Tests.Unit
                 .ReturnsAsync(new HttpResponseMessage()
                 {
                     StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(DefaultOkResponse)
+                    Content = new StringContent(response ?? DefaultOkResponse)
                 })
                 .Verifiable();
             return mock;
@@ -140,6 +157,7 @@ namespace OpenWeatherClient.Tests.Unit
         private const double lat = 41.59d;
         private const double lng = -93.60d;
         private const string location = "Des Moines, IA 50309, United States of America";
+        private const string BadKeyMessage = "";
         private readonly string DefaultOkResponse = $@"{{
             ""results"": [{{
                 ""formatted"": ""{location}"",
@@ -164,13 +182,13 @@ namespace OpenWeatherClient.Tests.Unit
         }
         ";
 
-        private const string BadKeyResponse = @"{
+        private readonly string BadKeyResponse = $@"{{
             ""results"": [],
-            ""status"": {
+            ""status"": {{
                 ""code"": 403,
-                ""message"": ""invalid API key""
-            }
-        }
+                ""message"": ""{BadKeyMessage}""
+            }}
+        }}
         ";
     }
 }
