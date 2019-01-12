@@ -131,6 +131,19 @@ namespace OpenWeatherClient.Tests.Unit
             act.Should().Throw<ApiException>().WithMessage($"*{BadKeyMessage}");
         }
 
+        [Fact]
+        public void GetLatLongFromCityAsync__ThrowsExceptionWhenNoLocationFound()
+        {
+            var handlerMock = SetupBackend(response: NoResultsFoundResponse);
+
+            var client = new HttpClient(handlerMock.Object);
+            var geo = new OpenCageGeo(client);
+
+            Func<Task> act = async() => await geo.GetLatLongForCityAsync("Des Moines");
+
+            act.Should().Throw<ApiException>().WithMessage($"*Location not found");
+        }
+
         private Mock<HttpMessageHandler> SetupBackend(
             Expression<Func<HttpRequestMessage, bool>> match = null,
             Mock<HttpMessageHandler> mock = null,

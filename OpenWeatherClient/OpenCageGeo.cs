@@ -34,7 +34,9 @@ namespace OpenWeatherClient
             if (body.Status.Code != (int)HttpStatusCode.OK)
                 throw new ApiException(body.Status.Message);
 
-            var result = body.Results.First();
+            var result = body.Results.FirstOrDefault();
+            if(result == null)
+                throw new ApiException("Location not found");
 
             return new Coord(
                 result.Geometry.Lat,
