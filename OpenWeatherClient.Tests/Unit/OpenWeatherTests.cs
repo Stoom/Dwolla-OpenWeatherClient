@@ -62,7 +62,7 @@ namespace OpenWeatherClient.Tests.Unit
         public void CurrentTempAsync__AddsTheApiKey()
         {
             var apiKey = "Foobar";
-            var handlerMock = SetupBackend(x => x.RequestUri.Query.Contains($"key={apiKey}"));
+            var handlerMock = SetupBackend(x => x.RequestUri.Query.Contains($"APPID={apiKey}"));
             
             var client = new HttpClient(handlerMock.Object);
             var weather = new OpenWeather(client, apiKey);
