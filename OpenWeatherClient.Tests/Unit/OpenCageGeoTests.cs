@@ -14,13 +14,31 @@ namespace OpenWeatherClient.Tests.Unit
 {
     public class OpenCageGeoTests
     {
+        private string apiKey = "foobar";
+
+        [Fact]
+        public void Ctor__RequiresApiKey()
+        {
+            Action act = () => new OpenCageGeo(new HttpClient(), null);
+
+            act.Should().Throw<ArgumentException>().WithMessage("*apiKey*");
+        }
+
+        [Fact]
+        public void Ctor__RequiresHttpClient()
+        {
+            Action act = () => new OpenCageGeo(null, "Fooboar");
+
+            act.Should().Throw<ArgumentException>().WithMessage("*client*");
+        }
+
         [Fact]
         public void GetLatLongForCityAsync__CallsToOpenCage()
         {
             var handlerMock = SetupBackend(x => x.RequestUri.AbsoluteUri.StartsWith("https://api.opencagedata.com/geocode/v1/json?"));
 
             var client = new HttpClient(handlerMock.Object);
-            var geo = new OpenCageGeo(client);
+            var geo = new OpenCageGeo(client, apiKey);
 
             Func<Task> act = async () => await geo.GetLatLongForCityAsync("Foobar");
 
@@ -33,9 +51,23 @@ namespace OpenWeatherClient.Tests.Unit
             var handlerMock = SetupBackend(x => x.Method == HttpMethod.Get);
 
             var client = new HttpClient(handlerMock.Object);
-            var geo = new OpenCageGeo(client);
+            var geo = new OpenCageGeo(client, apiKey);
 
             Func<Task> act = async () => await geo.GetLatLongForCityAsync("Foobar");
+
+            act.Should().NotThrow();
+        }
+
+        [Fact]
+        public void GetLatLongFromCityAsync__AddsTheApiKey()
+        {
+            var apiKey = "Foobar";
+            var handlerMock = SetupBackend(x => x.RequestUri.Query.Contains($"key={apiKey}"));
+            
+            var client = new HttpClient(handlerMock.Object);
+            var geo = new OpenCageGeo(client, apiKey);
+
+            Func<Task> act = async () => await geo.GetLatLongForCityAsync("Des Moines");
 
             act.Should().NotThrow();
         }
@@ -47,7 +79,7 @@ namespace OpenWeatherClient.Tests.Unit
             var handlerMock = SetupBackend(x => x.RequestUri.Query.Contains($"q={WebUtility.UrlEncode(city)}"));
             
             var client = new HttpClient(handlerMock.Object);
-            var geo = new OpenCageGeo(client);
+            var geo = new OpenCageGeo(client, apiKey);
 
             Func<Task> act = async () => await geo.GetLatLongForCityAsync(city);
 
@@ -63,7 +95,7 @@ namespace OpenWeatherClient.Tests.Unit
             var handlerMock = SetupBackend(x => x.RequestUri.Query.Contains($"q={encodedLocation}", StringComparison.InvariantCultureIgnoreCase));
 
             var client = new HttpClient(handlerMock.Object);
-            var geo = new OpenCageGeo(client);
+            var geo = new OpenCageGeo(client, apiKey);
 
             Func<Task> act = async() => await geo.GetLatLongForCityAsync(city, state);
 
@@ -80,7 +112,7 @@ namespace OpenWeatherClient.Tests.Unit
             var handlerMock = SetupBackend(x => x.RequestUri.Query.Contains($"q={encodedLocation}", StringComparison.InvariantCultureIgnoreCase));
 
             var client = new HttpClient(handlerMock.Object);
-            var geo = new OpenCageGeo(client);
+            var geo = new OpenCageGeo(client, apiKey);
 
             Func<Task> act = async() => await geo.GetLatLongForCityAsync(city, state, country);
 
@@ -96,7 +128,7 @@ namespace OpenWeatherClient.Tests.Unit
             var handlerMock = SetupBackend(x => x.RequestUri.Query.Contains($"q={encodedLocation}", StringComparison.InvariantCultureIgnoreCase));
 
             var client = new HttpClient(handlerMock.Object);
-            var geo = new OpenCageGeo(client);
+            var geo = new OpenCageGeo(client, apiKey);
 
             Func<Task> act = async() => await geo.GetLatLongForCityAsync(city, null, country);
 
@@ -109,7 +141,7 @@ namespace OpenWeatherClient.Tests.Unit
             var handlerMock = SetupBackend();
 
             var client = new HttpClient(handlerMock.Object);
-            var geo = new OpenCageGeo(client);
+            var geo = new OpenCageGeo(client, apiKey);
 
             var coords = await geo.GetLatLongForCityAsync("Des Moines");
 
@@ -124,7 +156,7 @@ namespace OpenWeatherClient.Tests.Unit
             var handlerMock = SetupBackend(response: BadKeyResponse);
 
             var client = new HttpClient(handlerMock.Object);
-            var geo = new OpenCageGeo(client);
+            var geo = new OpenCageGeo(client, apiKey);
 
             Func<Task> act = async() => await geo.GetLatLongForCityAsync("Des Moines");
 
@@ -137,7 +169,7 @@ namespace OpenWeatherClient.Tests.Unit
             var handlerMock = SetupBackend(response: NoResultsFoundResponse);
 
             var client = new HttpClient(handlerMock.Object);
-            var geo = new OpenCageGeo(client);
+            var geo = new OpenCageGeo(client, apiKey);
 
             Func<Task> act = async() => await geo.GetLatLongForCityAsync("Des Moines");
 

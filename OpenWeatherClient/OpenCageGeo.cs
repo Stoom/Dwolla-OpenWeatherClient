@@ -13,10 +13,17 @@ namespace OpenWeatherClient
     public class OpenCageGeo : IGeo
     {
         private readonly HttpClient client;
-        public OpenCageGeo(HttpClient client)
-        {
-            this.client = client;
+        private readonly string apiKey;
 
+        public OpenCageGeo(HttpClient client, string apiKey)
+        {
+            if (client == null)
+                throw new ArgumentException(nameof(client));
+            if (String.IsNullOrWhiteSpace(apiKey))
+                throw new ArgumentException(nameof(apiKey));
+
+            this.client = client;
+            this.apiKey = apiKey;
         }
 
         public async Task<Coord> GetLatLongForCityAsync(string city, string state = null, string country = null)
@@ -24,6 +31,7 @@ namespace OpenWeatherClient
             var uri = new UriBuilder("https://api.opencagedata.com/geocode/v1/json");
             var query = HttpUtility.ParseQueryString(string.Empty);
             query["q"] = GenerateLocation(city, state, country);
+            query["key"] = apiKey;
             uri.Query = query.ToString();
 
             var req = new HttpRequestMessage(HttpMethod.Get, uri.ToString());
