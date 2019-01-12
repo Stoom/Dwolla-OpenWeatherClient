@@ -102,21 +102,75 @@ namespace OpenWeatherClient.Tests.Unit
             act.Should().NotThrow();
         }
 
-        private Mock<HttpMessageHandler> SetupBackend(Expression<Func<HttpRequestMessage, bool>> match, Mock<HttpMessageHandler> mock = null)
+        [Fact]
+        public async Task GetLatLongFromCityAsync__ReturnsTheCoordsForTheRequested()
+        {
+            var handlerMock = SetupBackend();
+
+            var client = new HttpClient(handlerMock.Object);
+            var geo = new OpenCageGeo(client);
+
+            var coords = await geo.GetLatLongForCityAsync("Des Moines");
+
+            coords.Lat.Should().BeApproximately(lat, 2d);
+            coords.Lng.Should().BeApproximately(lng, 2d);
+            coords.ToString().Should().BeEquivalentTo(location);
+        }
+
+        private Mock<HttpMessageHandler> SetupBackend(Expression<Func<HttpRequestMessage, bool>> match = null, Mock<HttpMessageHandler> mock = null)
         {
             mock = mock ?? new Mock<HttpMessageHandler>();
+            var reqMatch = match != null
+                ? ItExpr.Is<HttpRequestMessage>(match)
+                : ItExpr.IsAny<HttpRequestMessage>();
             mock.Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(match),
+                    reqMatch,
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(new HttpResponseMessage()
                 {
                     StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent("")
+                    Content = new StringContent(DefaultOkResponse)
                 })
                 .Verifiable();
             return mock;
         }
+
+        private const double lat = 41.59d;
+        private const double lng = -93.60d;
+        private const string location = "Des Moines, IA 50309, United States of America";
+        private readonly string DefaultOkResponse = $@"{{
+            ""results"": [{{
+                ""formatted"": ""{location}"",
+                ""geometry"": {{
+                    ""lat"": {lat},
+                    ""lng"": {lng}
+                }}
+            }}],
+            ""status"": {{
+                ""code"": 200,
+                ""message"": ""OK""
+            }}
+        }}
+        ";
+
+        private const string NoResultsFoundResponse = @"{
+            ""results"": [],
+            ""status"": {
+                ""code"": 200,
+                ""message"": ""OK""
+            }
+        }
+        ";
+
+        private const string BadKeyResponse = @"{
+            ""results"": [],
+            ""status"": {
+                ""code"": 403,
+                ""message"": ""invalid API key""
+            }
+        }
+        ";
     }
 }

@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using Newtonsoft.Json;
 using OpenWeatherClient.Abstractions;
 
 namespace OpenWeatherClient
@@ -24,9 +26,16 @@ namespace OpenWeatherClient
             uri.Query = query.ToString();
 
             var req = new HttpRequestMessage(HttpMethod.Get, uri.ToString());
-            await client.SendAsync(req);
+            var res = await client.SendAsync(req);
 
-            return null;
+            var body = JsonConvert.DeserializeObject<OpenCageRes>(await res.Content.ReadAsStringAsync());
+            var result = body.Results.First();
+
+            return new Coord(
+                result.Geometry.Lat,
+                result.Geometry.Lng,
+                result.Formatted
+            );
         }
 
         private string GenerateLocation(string city, string state = null, string country = null)
