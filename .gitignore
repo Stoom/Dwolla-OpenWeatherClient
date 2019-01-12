@@ -2,3 +2,4 @@ obj/
 bin/
 coverage/
 .nyc_output/
+out/
