@@ -1,12 +1,19 @@
-﻿using System;
+using System;
 
 namespace OpenWeatherClient
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var openWeatherKey = Environment.GetEnvironmentVariable("OPENWEATHER_KEY");
+            var openCageKey = Environment.GetEnvironmentVariable("OPENCAGE_KEY");
+
+            if (string.IsNullOrWhiteSpace(openCageKey))
+                throw new ArgumentException("Missing OpenCage api key");
+            if (string.IsNullOrWhiteSpace(openWeatherKey))
+                throw new ArgumentException("Missing OpenWeather api key");
+
         }
     }
 }
