@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Xunit;
@@ -40,6 +41,22 @@ namespace OpenWeatherClient.Tests.Integration
             Func<Task> act = async () => await Program.Main(null);
 
             act.Should().Throw<ArgumentException>().WithMessage("*Missing OpenWeather api key");
+        }
+
+        [Fact]
+        public async Task Main__GetsWeatherForLocation()
+        {
+            using (var sw = new StringWriter())
+            using (var sr = new  StringReader($"Des Moines, IA{Environment.NewLine}"))
+            {
+                Console.SetOut(sw);
+                Console.SetIn(sr);
+
+                await Program.Main(null);
+                var output = sw.ToString();
+
+                output.Should().Contain("degrees Celsius");
+            }
         }
     }
 }
