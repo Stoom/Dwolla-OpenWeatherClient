@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using OpenWeatherClient.Abstractions;
@@ -19,7 +20,10 @@ namespace OpenWeatherClient
         {
             var uri = new UriBuilder("https://api.opencagedata.com/geocode/v1/json");
             var query = HttpUtility.ParseQueryString(string.Empty);
-            query["q"] = city;
+            var location = new StringBuilder(city);
+            if (!String.IsNullOrWhiteSpace(state))
+                location.Append($",{state}");
+            query["q"] = location.ToString();
             uri.Query = query.ToString();
 
             var req = new HttpRequestMessage(HttpMethod.Get, uri.ToString());

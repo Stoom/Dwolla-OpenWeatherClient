@@ -16,8 +16,7 @@ namespace OpenWeatherClient.Tests.Unit
         [Fact]
         public void GetLatLongForCityAsync__CallsToOpenCage()
         {
-            var handlerMock = new Mock<HttpMessageHandler>();
-            SetupBackend(handlerMock, x => x.RequestUri.AbsoluteUri.StartsWith("https://api.opencagedata.com/geocode/v1/json?"));
+            var handlerMock = SetupBackend(x => x.RequestUri.AbsoluteUri.StartsWith("https://api.opencagedata.com/geocode/v1/json?"));
 
             var client = new HttpClient(handlerMock.Object);
             var geo = new OpenCageGeo(client);
@@ -30,8 +29,7 @@ namespace OpenWeatherClient.Tests.Unit
         [Fact]
         public void GetLatLongForCityAsync__CallsWithGet()
         {
-            var handlerMock = new Mock<HttpMessageHandler>();
-            SetupBackend(handlerMock, x => x.Method == HttpMethod.Get);
+            var handlerMock = SetupBackend(x => x.Method == HttpMethod.Get);
 
             var client = new HttpClient(handlerMock.Object);
             var geo = new OpenCageGeo(client);
@@ -45,8 +43,7 @@ namespace OpenWeatherClient.Tests.Unit
         public void GetLatLongFromCityAsync__AddsTheCityToTheQueryString()
         {
             var city = "Des Moines";
-            var handlerMock = new Mock<HttpMessageHandler>();
-            SetupBackend(handlerMock, x => x.RequestUri.Query.Contains($"q={WebUtility.UrlEncode(city)}"));
+            var handlerMock = SetupBackend(x => x.RequestUri.Query.Contains($"q={WebUtility.UrlEncode(city)}"));
             
             var client = new HttpClient(handlerMock.Object);
             var geo = new OpenCageGeo(client);
@@ -56,8 +53,25 @@ namespace OpenWeatherClient.Tests.Unit
             act.Should().NotThrow();
         }
 
-        private void SetupBackend(Mock<HttpMessageHandler> mock, Expression<Func<HttpRequestMessage, bool>> match)
+        [Fact]
+        public void GetLatLongFromCityAsync__AddsTheStateToTheQueryString()
         {
+            var city = "Des Moines";
+            var state = "Ia";
+            var encodedLocation = WebUtility.UrlEncode($"{city},{state}");
+            var handlerMock = SetupBackend(x => x.RequestUri.Query.Contains($"q={encodedLocation}", StringComparison.InvariantCultureIgnoreCase));
+
+            var client = new HttpClient(handlerMock.Object);
+            var geo = new OpenCageGeo(client);
+
+            Func<Task> act = async() => await geo.GetLatLongForCityAsync(city, state);
+
+            act.Should().NotThrow();
+        }
+
+        private Mock<HttpMessageHandler> SetupBackend(Expression<Func<HttpRequestMessage, bool>> match, Mock<HttpMessageHandler> mock = null)
+        {
+            mock = mock ?? new Mock<HttpMessageHandler>();
             mock.Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
@@ -69,6 +83,7 @@ namespace OpenWeatherClient.Tests.Unit
                     Content = new StringContent("")
                 })
                 .Verifiable();
+            return mock;
         }
     }
 }
