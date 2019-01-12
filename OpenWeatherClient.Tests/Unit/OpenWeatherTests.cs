@@ -98,6 +98,32 @@ namespace OpenWeatherClient.Tests.Unit
 
             act.Should().NotThrow();
         }
+
+        [Fact]
+        public async Task CurrentTempAsync__ReturnsTheTempature()
+        {
+            var handlerMock = SetupBackend();
+            
+            var client = new HttpClient(handlerMock.Object);
+            var weather = new OpenWeather(client, apiKey);
+
+            var actual = await weather.CurrentTempAsync(new Coord(0d, 0d));
+
+            actual.Should().BeApproximately(temp, 2d);
+        }
+
+        [Fact]
+        public void CurrentTempAsync__ThrowsExceptionWhenApiFails()
+        {
+            var handlerMock = SetupBackend(response: FailedResponse);
+
+            var client = new HttpClient(handlerMock.Object);
+            var weather = new OpenWeather(client, apiKey);
+
+            Func<Task> act = async() => await weather.CurrentTempAsync(new Coord(0d, 0d));
+
+            act.Should().Throw<ApiException>().WithMessage($"*{failedMessage}");
+        }
         
         private Mock<HttpMessageHandler> SetupBackend(
             Expression<Func<HttpRequestMessage, bool>> match = null,
@@ -116,10 +142,24 @@ namespace OpenWeatherClient.Tests.Unit
                 .ReturnsAsync(new HttpResponseMessage()
                 {
                     StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(response ?? "")
+                    Content = new StringContent(response ?? DefaultOkResponse)
                 })
                 .Verifiable();
             return mock;
         }
+
+        private const double temp = -1.05d;
+        private const string failedMessage = "Invalid API key";
+        private readonly string DefaultOkResponse = $@"{{
+            ""cod"": 200,
+            ""main"": {{
+                ""temp"": {temp}
+            }}
+        }}";
+
+        private readonly string FailedResponse = $@"{{
+            ""cod"": 401,
+            ""message"": ""{failedMessage}""
+        }}";
     }
 }

@@ -39,7 +39,12 @@ namespace OpenWeatherClient
             var req = new HttpRequestMessage(HttpMethod.Get, uri.ToString());
             var res = await client.SendAsync(req);
 
-            return 0d;
+            var body = JsonConvert.DeserializeObject<OpenWeatherRes>(await res.Content.ReadAsStringAsync());
+
+            if (body.Cod != (int)HttpStatusCode.OK)
+                throw new ApiException(body.Message);
+
+            return body.Main.Temp;
         }
     }
 }
