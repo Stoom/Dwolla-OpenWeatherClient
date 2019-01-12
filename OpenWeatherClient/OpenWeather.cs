@@ -26,9 +26,20 @@ namespace OpenWeatherClient
             this.apiKey = apiKey;
         }
 
-        public Task<decimal> CurrentTempAsync(Coord location)
+        public async Task<double> CurrentTempAsync(Coord location)
         {
-            throw new NotImplementedException();
+            var uri = new UriBuilder("http://api.openweathermap.org/data/2.5/weather");
+            var query = HttpUtility.ParseQueryString(string.Empty);
+            query["APPID"] = apiKey;
+            query["lat"] = $"{location.Lat}";
+            query["lon"] = $"{location.Lng}";
+            query["units"] = "metric";
+            uri.Query = query.ToString();
+
+            var req = new HttpRequestMessage(HttpMethod.Get, uri.ToString());
+            var res = await client.SendAsync(req);
+
+            return 0d;
         }
     }
 }
